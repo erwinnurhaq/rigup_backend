@@ -4,7 +4,7 @@ const db = mysql.createConnection({
     host: process.env.DB || 'db',
     user: 'root',
     password: 'lollipop.',
-    database: 'rigdb',
+    database: 'rigdb_rev',
     port: 3306
     // multipleStatements: true
 })
