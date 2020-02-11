@@ -1,0 +1,6 @@
+{
+    "env": {
+        "PORT": 2000,
+        "SECRET_KEY": "asdf1234zxc."
+    }
+}
