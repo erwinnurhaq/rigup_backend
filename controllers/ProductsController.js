@@ -7,15 +7,7 @@ module.exports = {
 
     getAllProducts: async (req, res) => {
         try {
-            let result = {};
-            for (const key in queryProduct) {
-                let product = await query(queryProduct[key])
-                let image = await query(`select * from ${key}_image`)
-                result[key] = product.map(i => ({
-                    ...i,
-                    image: image.filter(img => img[`${key}_id`] == i.id).map(img => img.image)
-                }))
-            }
+            let result = await query(`select * from products`)
             res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)

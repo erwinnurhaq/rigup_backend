@@ -62,9 +62,9 @@ module.exports = {
                     id: check[0].id,
                     email: check[0].email,
                     role_id: check[0].role_id
-                })
+                }, { expiresIn: '24h' })
                 await query('UPDATE users SET ? WHERE id = ?', [{
-                    last_login : moment().utc().format('YYYY-MM-DD hh:mm:ss')
+                    last_login: moment().utc().format('YYYY-MM-DD hh:mm:ss')
                 }, check[0].id])
                 res.status(200).send({ user: check[0], token })
             } else {
