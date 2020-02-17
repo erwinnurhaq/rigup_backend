@@ -12,7 +12,7 @@ module.exports = {
             const users = await query('SELECT * FROM users')
             res.status(200).send(users)
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send({ error })
         }
     },
 
@@ -21,7 +21,7 @@ module.exports = {
             await query('DELETE FROM users WHERE id = ?', [req.params.id])
             res.status(200).send({ message: 'User deleted successfully' })
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send({ error })
         }
     },
 
@@ -47,31 +47,38 @@ module.exports = {
                 res.status(400).send({ error: 'Username or email exist' })
             }
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send({ error })
         }
     },
 
     login: async (req, res) => {
         try {
-            const check = await query('SELECT * FROM users WHERE username = ? OR email = ?', [
-                req.body.userOrEmail,
-                req.body.userOrEmail
-            ])
+            console.log(req.body)
+            const sql = `SELECT u.id, u.fullname, g.gender, u.date_birth, u.username, u.email,
+                            u.password, u.address, c.city, u.phone, u.role_id FROM users u
+                            JOIN user_genders g on g.id = u.gender_id
+                            JOIN user_cities c on c.id = u.city_id
+                            WHERE u.username = ? OR u.email = ?`
+            let check = await query(sql, [req.body.userOrEmail, req.body.userOrEmail])
+            console.log(check)
+            // console.log(bcrypt.compareSync(req.body.password, check[0].password))
             if (check.length !== 0 && bcrypt.compareSync(req.body.password, check[0].password)) {
-                const token = createToken({
+                let dataForToken = {
                     id: check[0].id,
                     email: check[0].email,
                     role_id: check[0].role_id
-                }, { expiresIn: '24h' })
+                }
+                let token = req.body.keepLogin ? createToken(dataForToken) : createToken(dataForToken, { expiresIn: '24h' })
                 await query('UPDATE users SET ? WHERE id = ?', [{
                     last_login: moment().utc().format('YYYY-MM-DD hh:mm:ss')
                 }, check[0].id])
+                delete check[0].password
                 res.status(200).send({ user: check[0], token })
             } else {
                 res.status(404).send({ error: 'Username or password is wrong' })
             }
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send({ error })
         }
     },
 
@@ -93,7 +100,7 @@ module.exports = {
                 res.status(404).send({ error: 'User not found' })
             }
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send({ error })
         }
     },
 
@@ -112,7 +119,29 @@ module.exports = {
                 res.status(400).send({ error: 'Wrong current password' })
             }
         } catch (error) {
-            res.status(500).send(error)
+            res.status(500).send({ error })
+        }
+    },
+
+    keepLogin: async (req, res) => {
+        try {
+            console.log(req.user)
+            const sql = `SELECT u.id, u.fullname, g.gender, u.date_birth, u.username, u.email,
+                            u.password, u.address, c.city, u.phone, u.role_id FROM users u
+                            JOIN user_genders g on g.id = u.gender_id
+                            JOIN user_cities c on c.id = u.city_id
+                            WHERE u.id = ? AND u.email = ?`
+            const check = await query(sql, [
+                req.user.id,
+                req.user.email
+            ])
+            await query('UPDATE users SET ? WHERE id = ?', [{
+                last_login: moment().utc().format('YYYY-MM-DD hh:mm:ss')
+            }, check[0].id])
+            delete check[0].password
+            res.status(200).send({ user: check[0] })
+        } catch (error) {
+            res.status(500).send({ error })
         }
     }
 

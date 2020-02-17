@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken')
+const secret = process.env.SECRET_KEY || 'asdf1234zxc.'
 
 module.exports = {
-    createToken: (data, duration) => jwt.sign(data, process.env.SECRET_KEY, duration),
+    createToken: (data, option) => jwt.sign(data, secret, option),
     verifyUser: (req, res, next) => {
         if (req.headers.authorization) {
-            jwt.verify(req.headers.authorization.split(' ')[1], process.env.SECRET_KEY, (error, decoded) => {
+            jwt.verify(req.headers.authorization.split(' ')[1], secret, (error, decoded) => {
                 if (error) {
                     res.status(400).send({ message: 'You are not authorized', error })
                 } else {
@@ -18,7 +19,7 @@ module.exports = {
     },
     verifyAdmin: (req, res, next) => {
         if (req.headers.authorization) {
-            jwt.verify(req.headers.authorization.split(' ')[1], process.env.SECRET_KEY, (error, decoded) => {
+            jwt.verify(req.headers.authorization.split(' ')[1], secret, (error, decoded) => {
                 if (error || decoded.role_id !== 1) {
                     res.status(400).send({ message: 'You are not authorized' })
                 } else {

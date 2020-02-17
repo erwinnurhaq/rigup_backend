@@ -10,7 +10,7 @@ const { ProductsRouter, UsersRouter } = require('./routers')
 app.use(cors())
 app.use(bodyParser.json())
 
-app.get('/', (req, res) => res.status(200).send('<h1>RIGIN API WORKS</h1>'))
+app.get('/', (req, res) => res.status(200).send('<h1>RIG-UP! API WORKS!</h1>'))
 
 app.use('/products', ProductsRouter)
 app.use('/users', UsersRouter)
