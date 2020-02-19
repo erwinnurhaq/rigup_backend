@@ -10,5 +10,6 @@ router.patch('/', verifyUser, UsersController.edit)
 router.patch('/changepass', verifyUser, UsersController.changePass)
 router.post('/login', UsersController.login)
 router.post('/keeplogin', verifyUser, UsersController.keepLogin)
+router.get('/citylist', UsersController.cityList)
 
 module.exports = router

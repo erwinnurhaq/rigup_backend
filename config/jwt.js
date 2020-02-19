@@ -20,7 +20,7 @@ module.exports = {
     verifyAdmin: (req, res, next) => {
         if (req.headers.authorization) {
             jwt.verify(req.headers.authorization.split(' ')[1], secret, (error, decoded) => {
-                if (error || decoded.role_id !== 1) {
+                if (error || decoded.roleId !== 1) {
                     res.status(400).send({ message: 'You are not authorized' })
                 } else {
                     req.user = decoded
