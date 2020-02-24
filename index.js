@@ -14,9 +14,10 @@ app.use('/public', express.static('public'))
 app.get('/', (req, res) => res.status(200).send('<h1>RIG-UP! API WORKS!</h1>'))
 
 app.use('/brands', Routers.BrandsRouter)
+app.use('/brandcats', Routers.BrandCatsRouter)
 app.use('/categories', Routers.CategoriesRouter)
 app.use('/products', Routers.ProductsRouter)
-app.use('/productdetails', Routers.ProductDetailsRouter)
+app.use('/productcats', Routers.ProductCatsRouter)
 app.use('/users', Routers.UsersRouter)
 
 

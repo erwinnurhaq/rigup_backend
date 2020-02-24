@@ -2,10 +2,13 @@ const express = require('express')
 const router = express.Router()
 const { CategoriesController } = require('../controllers')
 
-router.get('/', CategoriesController.getAll)
-router.post('/child', CategoriesController.getChild)
+// category list
+router.get('/', CategoriesController.getCategories)
 router.get('/mostparent', CategoriesController.getMostParent)
 router.get('/mostchild', CategoriesController.getMostChild)
+router.get('/child', CategoriesController.getChild)
+
+// category add, edit and delete
 router.post('/', CategoriesController.addCategory)
 router.put('/:id', CategoriesController.editCategory)
 router.delete('/:id', CategoriesController.deleteCategory)

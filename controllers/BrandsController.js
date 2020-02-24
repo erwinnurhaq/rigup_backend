@@ -4,7 +4,7 @@ const dbquery = util.promisify(db.query).bind(db);
 
 module.exports = {
 
-    getAll: async (req, res) => {
+    getBrands: async (req, res) => {
         try {
             let query = `select * from brands`
             const result = await dbquery(query)
@@ -14,30 +14,39 @@ module.exports = {
         }
     },
 
-    getBrandCat: async (req, res) => {
+    addBrand: async (req, res) => {
         try {
-            let query = `SELECT bc.brandId, b.brand, bc.categoryId, c.category FROM brand_cats bc
-                        join brands b on b.id = bc.brandId
-                        join categories c on c.id = bc.categoryId
-                        ${req.query.categoryId ? `where bc.categoryId = ` + db.escape(req.query.categoryId) : ''}`
-            const result = await dbquery(query)
+            let query = `INSERT INTO brands SET ?`
+            const result = await dbquery(query, {
+                brand: req.body.brand
+            })
             res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)
         }
     },
 
-    assignBrandCat: async (req, res) => {
+    editBrandById: async (req, res) => {
         try {
-            console.log(req.body)
-            let query = `delete from brand_cats where brandId = ?`
-            await dbquery(query, [req.body.brandId])
+            let query = `UPDATE brands SET ? WHERE id = ?`
+            const result = await dbquery(query, [
+                { brand: req.body.brand },
+                req.params.id
+            ])
+            res.status(200).send(result)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
 
-            let data = req.body.categoryId.map((item) => {
-                return [req.body.brandId, item]
-            })
-            query = `insert into brand_cats (brandId, categoryId) values ?`
-            const result = await dbquery(query, [data])
+    //delete brand by id, assigned brand category is deleted too by fk constraint
+    deleteBrandById: async (req, res) => {
+        try {
+            let query = `DELETE FROM brands WHERE id = ?`
+            const result = await dbquery(query, [req.params.id])
+            if (result.affectedRows === 0) {
+                return res.status(404).send({ message: 'brand id not found' })
+            }
             res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)
