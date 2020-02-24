@@ -8,8 +8,7 @@ module.exports = {
         try {
             let query = `SELECT bc.brandId, b.brand, bc.categoryId, c.category FROM brand_cats bc
                         join brands b on b.id = bc.brandId
-                        join categories c on c.id = bc.categoryId
-                        ${req.query.categoryId ? `where bc.categoryId = ` + db.escape(req.query.categoryId) : ''}`
+                        join categories c on c.id = bc.categoryId`
             const result = await dbquery(query)
             res.status(200).send(result)
         } catch (error) {

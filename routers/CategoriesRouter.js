@@ -6,7 +6,7 @@ const { CategoriesController } = require('../controllers')
 router.get('/', CategoriesController.getCategories)
 router.get('/mostparent', CategoriesController.getMostParent)
 router.get('/mostchild', CategoriesController.getMostChild)
-router.get('/child', CategoriesController.getChild)
+router.get('/child/:parentId', CategoriesController.getChild)
 
 // category add, edit and delete
 router.post('/', CategoriesController.addCategory)

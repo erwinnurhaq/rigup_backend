@@ -18,7 +18,7 @@ module.exports = {
     getChild: async (req, res) => {
         try {
             let query = `select * from category_complete where parentId = ?`
-            const result = await dbquery(query, [req.query.id])
+            const result = await dbquery(query, [req.params.parentId])
             res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)

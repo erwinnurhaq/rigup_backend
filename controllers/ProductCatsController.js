@@ -41,8 +41,8 @@ module.exports = {
 
     deleteAssignedProductCats: async (req, res) => {
         try {
-            let query = `DELETE FROM product_cats WHERE productId = ${db.escape(req.params.productId)}`
-            const result = await dbquery(query)
+            let query = `DELETE FROM product_cats WHERE productId = ?`
+            const result = await dbquery(query, [req.params.productId])
             if (result.affectedRows === 0) {
                 return res.status(404).send({ message: 'product id not found' })
             }
