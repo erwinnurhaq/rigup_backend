@@ -25,6 +25,21 @@ module.exports = {
         }
     },
 
+    getChildTree: async (req, res) => {
+        try {
+            let arr = []
+            let query, result
+            for (i = 0; i < req.query.parentId.length; i += 1) {
+                query = `select * from category_complete where parentId = ?`
+                result = await dbquery(query, [req.query.parentId[i]])
+                if (result.length !== 0) { arr.push(result) }
+            }
+            res.status(200).send(arr)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
     //get categories that have no parent
     getMostParent: async (req, res) => {
         try {

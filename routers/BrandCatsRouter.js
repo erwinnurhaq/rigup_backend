@@ -1,8 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const { BrandCatsController } = require('../controllers')
+const { verifyUser, verifyAdmin } = require('../config/jwt')
 
 router.get('/', BrandCatsController.getBrandCats)
-router.post('/', BrandCatsController.assignBrandCats)
+router.post('/', verifyAdmin, BrandCatsController.assignBrandCats)
 
 module.exports = router

@@ -15,8 +15,11 @@ module.exports = {
 
             result.forEach(p => {
                 var x = productCats.filter(i => i.productId === p.id)
-                p.categoryId = x.map(i => i.categoryId).reverse()
-                p.category = x.map(i => i.category).reverse()
+                p.categories = x.map(i => {
+                    return { categoryId: i.categoryId, category: i.category }
+                }).sort((a, b) => a.categoryId - b.categoryId)
+                // p.categoryId = x.map(i => i.categoryId).reverse()
+                // p.category = x.map(i => i.category).reverse()
             })
             res.status(200).send(result)
         } catch (error) {
@@ -39,11 +42,17 @@ module.exports = {
 
     getProductByCategoryId: async (req, res) => {
         try {
+            console.log(req.query)
             let query = `select p.id, b.brand, p.name, p.price, p.stock from products p
                         join product_cats pc on pc.productId = p.id
                         join brands b on b.id = p.brandId
-                        where pc.categoryId = ?`
-            const result = await dbquery(query, [req.params.categoryId])
+                        where pc.categoryId = ?
+                        ${req.query.limit ? `limit ? offset ?` : ''}`
+            const result = await dbquery(query, [
+                req.params.categoryId,
+                parseInt(req.query.limit),
+                parseInt(req.query.offset)
+            ])
 
             query = `select * from product_cats_complete
                     where productId in (?)`
@@ -51,11 +60,27 @@ module.exports = {
 
             result.forEach(p => {
                 var x = productCats.filter(i => i.productId === p.id)
-                p.categoryId = x.map(i => i.categoryId).reverse()
-                p.category = x.map(i => i.category).reverse()
+                p.categories = x.map(i => {
+                    return { categoryId: i.categoryId, category: i.category }
+                }).sort((a, b) => a.categoryId - b.categoryId)
+                // p.categoryId = x.map(i => i.categoryId).reverse()
+                // p.category = x.map(i => i.category).reverse()
             })
 
             res.status(200).send(result)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    getCountProductByCategoryId: async (req, res) => {
+        try {
+            let query = `select count(p.id) as count from products p
+                        join product_cats pc on pc.productId = p.id
+                        join brands b on b.id = p.brandId
+                        where pc.categoryId = ?`
+            const result = await dbquery(query, [req.params.categoryId])
+            res.status(200).send(result[0])
         } catch (error) {
             res.status(500).send(error)
         }
@@ -69,13 +94,14 @@ module.exports = {
                         where p.id = ?`
             const result = await dbquery(query, [req.params.id])
 
-            query = `select * from product_cats_complete
+            query = `select categoryId, category from product_cats_complete
                         where productId = ?`
             const productCats = await dbquery(query, [result[0].id])
 
-            result[0].categoryId = productCats.map(i => i.categoryId).reverse()
-            result[0].category = productCats.map(i => i.category).reverse()
-            res.status(200).send(result)
+            result[0].categories = productCats.sort((a, b) => a.categoryId - b.categoryId)
+            // result[0].categoryId = productCats.map(i => i.categoryId).reverse()
+            // result[0].category = productCats.map(i => i.category).reverse()
+            res.status(200).send(result[0])
         } catch (error) {
             res.status(500).send(error)
         }
@@ -85,6 +111,7 @@ module.exports = {
         try {
             const { product, categories } = req.body
 
+            console.log(product, categories)
             let query = `INSERT INTO products SET ?`
             const result = await dbquery(query, {
                 brandId: product.brandId,

@@ -19,7 +19,7 @@ module.exports = {
             let query = `SELECT bc.brandId, b.brand, bc.categoryId, c.category FROM brand_cats bc
                         join brands b on b.id = bc.brandId
                         join categories c on c.id = bc.categoryId
-                        where bc.categoryId =?`
+                        where bc.categoryId = ?`
             const result = await dbquery(query, [req.params.categoryId])
             res.status(200).send(result)
         } catch (error) {

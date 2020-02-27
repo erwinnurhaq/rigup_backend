@@ -10,22 +10,22 @@ const currentTime = () => moment().utc().format('YYYY-MM-DD hh:mm:ss')
 module.exports = {
 
     //get all users
-    getAll: async (req, res) => {
+    getUsers: async (req, res) => {
         try {
             const users = await dbquery('SELECT * FROM users')
             res.status(200).send(users)
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
     //delete user by id
-    delete: async (req, res) => {
+    deleteById: async (req, res) => {
         try {
             await dbquery('DELETE FROM users WHERE id = ?', [req.params.id])
             res.status(200).send({ message: 'User deleted successfully' })
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
@@ -60,10 +60,10 @@ module.exports = {
                 res.status(200).send({ user: user[0], token })
 
             } else {
-                res.status(400).send({ error: 'Username or email exist' })
+                res.status(400).send({ message: 'Username or email exist' })
             }
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
@@ -90,61 +90,52 @@ module.exports = {
                 delete check[0].password    //so it won't be included to response data
                 res.status(200).send({ user: check[0], token })
             } else {
-                res.status(404).send({ error: 'Username or password is wrong' })
+                res.status(404).send({ message: 'Username or password is wrong' })
             }
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
-    //edit user profile data (except password) by email and id gotten from token
     edit: async (req, res) => {
         try {
-            let query = 'SELECT * FROM users WHERE email = ?'
-            const user = await dbquery(query, [req.user.email])
+            let query = 'UPDATE users SET ? WHERE id = ?'
+            const result = await dbquery(query, [{
+                fullname: req.body.fullname,
+                genderId: req.body.genderId,
+                username: req.body.username,
+                address: req.body.address,
+                cityId: req.body.cityId,
+                phone: req.body.phone,
+                updatedTime: currentTime()
+            }, req.params.id])
 
-            if (user.length !== 0) {
-
-                for (const key in req.body) {
-                    if (req.body[key] === '' || req.body[key] === null) req.body[key] = user[0][key]
-                }
-
-                query = 'UPDATE users SET ? WHERE id = ?'
-                await dbquery(query, [{
-                    ...req.body,
-                    updatedTime: currentTime()
-                }, user[0].id])
-
-                res.status(200).send({ message: 'Edit success' })
-            } else {
-                res.status(404).send({ error: 'User not found' })
-            }
+            res.status(200).send(result)
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
-    //change user password by email and id gotten from token
     changePass: async (req, res) => {
         try {
-            let query = 'SELECT * FROM users WHERE email = ?'
-            const user = await dbquery(query, [req.user.email])
-
+            let query = 'SELECT * FROM users WHERE id = ?'
+            const user = await dbquery(query, [req.params.id])
             const { currentPassword, newPassword } = req.body
+
             if (user.length !== 0 && bcrypt.compareSync(currentPassword, user[0].password)) {
 
                 query = 'UPDATE users SET ? WHERE id = ?'
-                await dbquery(query, [{
+                const result = await dbquery(query, [{
                     password: bcrypt.hashSync(newPassword, 10),
                     updatedTime: currentTime()
-                }, user[0].id])
+                }, req.params.id])
 
-                res.status(200).send({ message: 'Edit success' })
+                res.status(200).send(result)
             } else {
-                res.status(400).send({ error: 'Wrong current password' })
+                res.status(400).send({ message: 'Wrong current password' })
             }
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
@@ -165,7 +156,7 @@ module.exports = {
             delete check[0].password    //so it won't be included to response data
             res.status(200).send({ user: check[0] })
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     },
 
@@ -175,7 +166,7 @@ module.exports = {
             const cities = await dbquery(`SELECT * FROM user_cities`)
             res.status(200).send(cities)
         } catch (error) {
-            res.status(500).send({ error })
+            res.status(500).send(error)
         }
     }
 
