@@ -9,20 +9,37 @@ const currentTime = () => moment().utc().format('YYYY-MM-DD hh:mm:ss')
 
 module.exports = {
 
-    //get all users
+    //get all users (admin only)
     getUsers: async (req, res) => {
         try {
-            const users = await dbquery('SELECT * FROM users')
+            let query = `SELECT * FROM user_complete
+                        ${req.query.limit ? `limit ? offset ?` : ''}`
+            const users = await dbquery(query, [
+                parseInt(req.query.limit),
+                parseInt(req.query.offset)
+            ])
             res.status(200).send(users)
         } catch (error) {
             res.status(500).send(error)
         }
     },
 
-    //delete user by id
+    //get all users count (admin only)
+    getCountUsers: async (req, res) => {
+        try {
+            let query = `SELECT count(*) as count FROM user_complete`
+            const count = await dbquery(query)
+            res.status(200).send(count[0])
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    //delete user by id (admin only)
     deleteById: async (req, res) => {
         try {
             await dbquery('DELETE FROM users WHERE id = ?', [req.params.id])
+            await dbquery('DELETE FROM user_carts WHERE userId = ?', [req.params.id])
             res.status(200).send({ message: 'User deleted successfully' })
         } catch (error) {
             res.status(500).send(error)
@@ -80,7 +97,7 @@ module.exports = {
                     roleId: check[0].roleId
                 }
 
-                let token = req.body.keepLogin ? createToken(dataForToken) : createToken(dataForToken, { expiresIn: '24h' })
+                let token = req.body.keepLogin ? createToken(dataForToken) : createToken(dataForToken, { expiresIn: '12h' })
 
                 query = 'UPDATE users SET ? WHERE id = ?'
                 await dbquery(query, [{
@@ -97,7 +114,28 @@ module.exports = {
         }
     },
 
+    //edit user own data
     edit: async (req, res) => {
+        try {
+            let query = 'UPDATE users SET ? WHERE id = ?'
+            const result = await dbquery(query, [{
+                fullname: req.body.fullname,
+                genderId: req.body.genderId,
+                username: req.body.username,
+                address: req.body.address,
+                cityId: req.body.cityId,
+                phone: req.body.phone,
+                updatedTime: currentTime()
+            }, req.user.id])
+
+            res.status(200).send(result)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    //edit user data by admin only
+    editByAdmin: async (req, res) => {
         try {
             let query = 'UPDATE users SET ? WHERE id = ?'
             const result = await dbquery(query, [{
@@ -116,10 +154,11 @@ module.exports = {
         }
     },
 
+    //edit user own password
     changePass: async (req, res) => {
         try {
             let query = 'SELECT * FROM users WHERE id = ?'
-            const user = await dbquery(query, [req.params.id])
+            const user = await dbquery(query, [req.user.id])
             const { currentPassword, newPassword } = req.body
 
             if (user.length !== 0 && bcrypt.compareSync(currentPassword, user[0].password)) {
@@ -128,7 +167,7 @@ module.exports = {
                 const result = await dbquery(query, [{
                     password: bcrypt.hashSync(newPassword, 10),
                     updatedTime: currentTime()
-                }, req.params.id])
+                }, req.user.id])
 
                 res.status(200).send(result)
             } else {
@@ -163,7 +202,7 @@ module.exports = {
     //get city list from user_cities
     cityList: async (req, res) => {
         try {
-            const cities = await dbquery(`SELECT * FROM user_cities`)
+            const cities = await dbquery(`SELECT * FROM cities`)
             res.status(200).send(cities)
         } catch (error) {
             res.status(500).send(error)

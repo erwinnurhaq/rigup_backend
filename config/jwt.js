@@ -21,6 +21,7 @@ module.exports = {
         if (req.headers.authorization) {
             jwt.verify(req.headers.authorization.split(' ')[1], secret, (error, decoded) => {
                 if (error || decoded.roleId !== 1) {
+                    console.log(decoded.roleId)
                     res.status(400).send({ message: 'You are not authorized' })
                 } else {
                     req.user = decoded

@@ -9,6 +9,7 @@ router.get('/mostparent', CategoriesController.getMostParent)
 router.get('/mostchild', CategoriesController.getMostChild)
 router.get('/child/:parentId', CategoriesController.getChild)
 router.get('/childtree', CategoriesController.getChildTree)
+router.get('/childofmainparent/:mainParentId', CategoriesController.getChildOfMostParent)
 
 // category add, edit and delete
 router.post('/', verifyAdmin, CategoriesController.addCategory)

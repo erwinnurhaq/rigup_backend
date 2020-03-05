@@ -4,6 +4,7 @@ const CategoriesController = require('./CategoriesController')
 const ProductsController = require('./ProductsController')
 const ProductCatsController = require('./ProductCatsController')
 const UsersController = require('./UsersController')
+const RajaOngkirController = require('./RajaOngkirController')
 
 module.exports = {
     BrandsController,
@@ -11,5 +12,6 @@ module.exports = {
     CategoriesController,
     ProductsController,
     ProductCatsController,
-    UsersController
+    UsersController,
+    RajaOngkirController
 }

@@ -21,15 +21,20 @@ module.exports = {
         try {
             let { brandId, categoryId } = req.body
             let query = `delete from brand_cats where brandId = ?`
-            const deleteExisting = await dbquery(query, [brandId])
-
-            if (deleteExisting.affectedRows === 0) {
-                return res.status(404).send({ message: 'brand id not found' })
-            }
-
+            await dbquery(query, [brandId])
             let data = categoryId.map(i => [brandId, i])
             query = `insert into brand_cats (brandId, categoryId) values ?`
             const result = await dbquery(query, [data])
+            res.status(200).send(result)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    deleteAssignedBrandCats: async (req, res) => {
+        try {
+            let query = `delete from brand_cats where brandId = ?`
+            const result = await dbquery(query, [req.params.id])
             res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)

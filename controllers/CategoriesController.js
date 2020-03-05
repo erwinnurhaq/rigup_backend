@@ -40,6 +40,16 @@ module.exports = {
         }
     },
 
+    getChildOfMostParent: async (req, res) => {
+        try {
+            let query = `select * from category_complete where mainParentId = ?`
+            const result = await dbquery(query, [req.params.mainParentId])
+            res.status(200).send(result)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
     //get categories that have no parent
     getMostParent: async (req, res) => {
         try {
@@ -72,7 +82,8 @@ module.exports = {
             let query = `INSERT INTO categories SET ?`
             const result = await dbquery(query, {
                 category: req.body.category,
-                parentId: req.body.parentId
+                parentId: req.body.parentId,
+                mainParentId: req.body.mainParentId
             })
             res.status(200).send(result)
         } catch (error) {
@@ -86,7 +97,8 @@ module.exports = {
             let query = `UPDATE categories SET ? WHERE id = ${db.escape(req.params.id)}`
             const result = await dbquery(query, {
                 category: req.body.category,
-                parentId: req.body.parentId
+                parentId: req.body.parentId,
+                mainParentId: req.body.mainParentId
             })
             if (result.affectedRows === 0) {
                 return res.status(404).send({ message: 'category id not found' })

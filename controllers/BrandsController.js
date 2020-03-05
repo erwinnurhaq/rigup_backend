@@ -1,6 +1,7 @@
 const db = require('../config/database')
 const util = require('util')
 const dbquery = util.promisify(db.query).bind(db);
+const { assignBrandCats, deleteAssignedBrandCats } = require('./BrandCatsController')
 
 module.exports = {
 
@@ -33,7 +34,9 @@ module.exports = {
             const result = await dbquery(query, {
                 brand: req.body.brand
             })
-            res.status(200).send(result)
+            req.body.brandId = result.insertId
+            assignBrandCats(req, res)
+            // res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)
         }
@@ -41,12 +44,18 @@ module.exports = {
 
     editBrandById: async (req, res) => {
         try {
+            console.log(req.body)
             let query = `UPDATE brands SET ? WHERE id = ?`
             const result = await dbquery(query, [
                 { brand: req.body.brand },
                 req.params.id
             ])
-            res.status(200).send(result)
+            console.log(result)
+            if (result.affectedRows === 0) {
+                return res.status(404).send({ message: 'brand id not found' })
+            }
+            assignBrandCats(req, res)
+            // res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)
         }
@@ -60,7 +69,8 @@ module.exports = {
             if (result.affectedRows === 0) {
                 return res.status(404).send({ message: 'brand id not found' })
             }
-            res.status(200).send(result)
+            deleteAssignedBrandCats(req, res)
+            // res.status(200).send(result)
         } catch (error) {
             res.status(500).send(error)
         }
