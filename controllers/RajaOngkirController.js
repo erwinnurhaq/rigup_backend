@@ -33,9 +33,10 @@ module.exports = {
             }
             const cost = await request.post('cost', data)
             const js = JSON.parse(cost)
-            const costPrice = js.rajaongkir.results[0].costs[1].cost[0].value //hanya ambil biaya
-            console.log(costPrice)
-            return res.send({ price: costPrice });
+            // const costPrice = js.rajaongkir.results[0].costs[1].cost[0].value //hanya ambil biaya
+            // console.log(costPrice)
+            // return res.send({ price: costPrice });
+            return res.send(js.rajaongkir.results[0]);
         } catch (error) {
             res.status(500).send(error)
         }
