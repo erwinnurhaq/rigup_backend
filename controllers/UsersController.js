@@ -3,8 +3,10 @@ const moment = require('moment')
 const bcrypt = require('bcryptjs')
 const { createToken } = require('../config/jwt')
 const db = require('../config/database')
+const { transporter, verifyEmail } = require('../config/mailer');
 
 const dbquery = util.promisify(db.query).bind(db)
+const sendMail = util.promisify(transporter.sendMail).bind(transporter)
 const currentTime = () => moment().utc().format('YYYY-MM-DD hh:mm:ss')
 
 module.exports = {
@@ -61,21 +63,30 @@ module.exports = {
                     ...req.body,
                     password: hash,
                     createdTime: currentTime(),
-                    roleId: 2
+                    roleId: 2,
+                    verified: 0
                 })
 
                 query = 'SELECT * FROM user_complete WHERE id = ?'
                 const user = await dbquery(query, [insert.insertId])
 
-                let token = createToken({
+                let verificationToken = createToken({
                     id: user[0].id,
                     email: user[0].email,
-                    roleId: user[0].roleId
-                }, { expiresIn: '24h' })
+                    roleId: user[0].roleId,
+                    verified: user[0].verified
+                }, { expiresIn: '1h' })
 
-                delete user[0].roleId   //so it won't be included to response data, roleId just in token
-                res.status(200).send({ user: user[0], token })
+                let mailOptions = verifyEmail(req.body.email, verificationToken)
+                console.log(mailOptions)
+                const result = await sendMail(mailOptions)
 
+                if (result.accepted) {
+                    delete user[0].roleId
+                    res.status(200).send({ user: user[0] })
+                } else {
+                    res.status(500).send({ message: 'cannot send email verification' })
+                }
             } else {
                 res.status(400).send({ message: 'Username or email exist' })
             }
@@ -88,13 +99,14 @@ module.exports = {
     login: async (req, res) => {
         try {
             let query = `SELECT * FROM user_complete WHERE username = ? OR email = ?`
-            let check = await dbquery(query, [req.body.userOrEmail, req.body.userOrEmail])
+            let user = await dbquery(query, [req.body.userOrEmail, req.body.userOrEmail])
 
-            if (check.length !== 0 && bcrypt.compareSync(req.body.password, check[0].password)) {
+            if (user.length !== 0 && bcrypt.compareSync(req.body.password, user[0].password)) {
                 let dataForToken = {
-                    id: check[0].id,
-                    email: check[0].email,
-                    roleId: check[0].roleId
+                    id: user[0].id,
+                    email: user[0].email,
+                    roleId: user[0].roleId,
+                    verified: user[0].verified
                 }
 
                 let token = req.body.keepLogin ? createToken(dataForToken) : createToken(dataForToken, { expiresIn: '12h' })
@@ -102,10 +114,10 @@ module.exports = {
                 query = 'UPDATE users SET ? WHERE id = ?'
                 await dbquery(query, [{
                     lastLogin: currentTime()
-                }, check[0].id])
+                }, user[0].id])
 
-                delete check[0].password    //so it won't be included to response data
-                res.status(200).send({ user: check[0], token })
+                delete user[0].password    //so it won't be included to response data
+                res.status(200).send({ user: user[0], token })
             } else {
                 res.status(404).send({ message: 'Username or password is wrong' })
             }
@@ -207,6 +219,65 @@ module.exports = {
         } catch (error) {
             res.status(500).send(error)
         }
-    }
+    },
+
+    //verifyEmailRegistration
+    verifyEmail: async (req, res) => {
+        let query = `SELECT * FROM user_complete WHERE id = ? AND email = ?`
+        const user = await dbquery(query, [
+            req.user.id,
+            req.user.email
+        ])
+
+        query = 'UPDATE users SET ? WHERE id = ?'
+        await dbquery(query, [{
+            verified: 1,
+            lastLogin: currentTime()
+        }, user[0].id])
+
+        let dataForToken = {
+            id: user[0].id,
+            email: user[0].email,
+            roleId: user[0].roleId,
+            verified: 1
+        }
+
+        let token = createToken(dataForToken, { expiresIn: '12h' })
+
+        delete user[0].password    //so it won't be included to response data
+        res.status(200).send({ user: { ...user[0], verified: 1 }, token })
+    },
+
+    //resendVerifyEmailRegistration
+    resendVerifyEmail: async (req, res) => {
+        try {
+            let query = 'SELECT * FROM user_complete WHERE id = ? AND email = ?'
+            const user = await dbquery(query, [req.body.id, req.body.email])
+
+            if (user.length !== 0) {
+
+                let verificationToken = createToken({
+                    id: user[0].id,
+                    email: user[0].email,
+                    roleId: user[0].roleId,
+                    verified: user[0].verified
+                }, { expiresIn: '1h' })
+
+                let mailOptions = verifyEmail(req.body.email, verificationToken)
+                const result = await sendMail(mailOptions)
+
+                if (result.accepted) {
+                    delete user[0].roleId
+                    res.status(200).send({ user: user[0] })
+                } else {
+                    res.status(500).send({ message: 'cannot send email verification' })
+                }
+            } else {
+                res.status(404).send({ message: 'email not found' })
+            }
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
 
 }

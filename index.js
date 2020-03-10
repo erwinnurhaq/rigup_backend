@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const Routers = require('./routers');
 
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
@@ -19,7 +20,9 @@ app.use('/categories', Routers.CategoriesRouter);
 app.use('/products', Routers.ProductsRouter);
 app.use('/productcats', Routers.ProductCatsRouter);
 app.use('/users', Routers.UsersRouter);
+app.use('/carts', Routers.CartsRouter);
 app.use('/ro', Routers.RajaOngkirRouter);
+app.use('/carousels', Routers.CarouselRouter);
 
 app.use((req, res) => {
 	res.status(404).send({ error: 'end point is not found' });

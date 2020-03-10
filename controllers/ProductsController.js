@@ -7,21 +7,45 @@ const { uploadFile } = require('../config/uploadFile');
 module.exports = {
 	getProducts: async (req, res) => {
 		try {
-			let query = `select p.id, b.brand, p.name, p.price, p.stock from products p
-                        left join brands b on b.id = p.brandId`;
-			const result = await dbquery(query);
+			let query;
+			let search = req.query.search? req.query.search.replace(/[^\s^\0-9a-zA-Z]/gi, '') : null
+			let filter = req.query.filter? db.escape(parseInt(req.query.filter)) : null
+			console.log('search: ', search)
+			console.log('filter: ', filter)
+			if(filter!==null){
+				query = `select * from (select * from product_complete
+						${search !== null ? `where name like '%${search}%'
+						or brand like '%${search}%'
+						or description like '%${search}%'
+						or category like '%${search}%'`: ''}) as products
+						where categoryId = ${filter}
+						group by id order by categoryId, id desc
+						${req.query.limit ? `limit ? offset ?` : ''}`;
+			} else {
+				query = `select * from product_complete
+						${search !== null ? `where
+						name like '%${search}%'
+						or brand like '%${search}%'
+						or description like '%${search}%'
+						or category like '%${search}%'`: ''}
+						group by id order by categoryId, id desc
+						${req.query.limit ? `limit ? offset ?` : ''}`;
+			}
 
-			query = `select * from product_cats_complete`;
-			const productCats = await dbquery(query);
+			const result = await dbquery(query, [
+				parseInt(req.query.limit),
+				parseInt(req.query.offset)
+			]);
 
 			result.forEach((p) => {
-				var x = productCats.filter((i) => i.productId === p.id);
-				p.categories = x
-					.map((i) => {
-						return { categoryId: i.categoryId, category: i.category };
-					})
-					.sort((a, b) => a.categoryId - b.categoryId);
+				if (p.image === null) {
+					p.image = `/images/products/default.png`
+				}
 			});
+			
+			if(result.length===0){
+				return res.status(404).send({ message: 'product not found' })
+			}
 			res.status(200).send(result);
 		} catch (error) {
 			res.status(500).send(error);
@@ -99,7 +123,7 @@ module.exports = {
 
 	getProductDetailById: async (req, res) => {
 		try {
-			let query = `select p.* from products p
+			let query = `select p.*, b.brand from products p
                         join brands b on b.id = p.brandId
                         where p.id = ?`;
 			const result = await dbquery(query, [req.params.id]);
@@ -149,7 +173,7 @@ module.exports = {
 				await dbquery(query, [img]);
 			}
 
-			let productCat = data.newCategories.map((i) => [result.insertId, i]);
+			let productCat = data.newCategories.sort((a,b)=> b-a).map((i) => [result.insertId, i]);
 			query = `INSERT INTO product_cats (productId,categoryId) VALUES ?`;
 			await dbquery(query, [productCat]);
 
@@ -200,7 +224,7 @@ module.exports = {
 			query = `DELETE FROM product_cats WHERE productId = ?`;
 			await dbquery(query, [id]);
 
-			let productCat = data.newCategories.map((i) => [id, i]);
+			let productCat = data.newCategories.sort((a,b)=> b-a).map((i) => [id, i]);
 			console.log('productCat', productCat)
 			query = `INSERT INTO product_cats (productId,categoryId) VALUES ?`;
 			await dbquery(query, [productCat]);
@@ -223,12 +247,17 @@ module.exports = {
 			if (result.affectedRows === 0) {
 				return res.status(404).send({ message: 'product id not found' });
 			}
+			console.log(result)
 			query = `DELETE FROM product_cats WHERE productId = ?`;
 			await dbquery(query, [req.params.id])
 
 			query = `SELECT * FROM product_images WHERE productId = ?`;
 			let selected = await dbquery(query, [req.params.id])
-			selected.forEach(i => fs.unlinkSync('./public' + i.image))
+			console.log(selected)
+			selected.forEach(i => {
+				fs.unlinkSync('./public' + i.image)
+				console.log('./public' + i.image)
+			})
 
 			query = `DELETE FROM product_images WHERE productId = ?`;
 			await dbquery(query, [req.params.id])

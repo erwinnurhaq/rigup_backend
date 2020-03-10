@@ -36,6 +36,6 @@ module.exports = {
 			cb(null, true);
 		};
 
-		return multer({ storage, fileFilter, limits: { fileSize: 1024 * 1024 * 5 } });
+		return multer({ storage, fileFilter, limits: { fileSize: 1024 * 1024 * 10 } });
 	}
 };

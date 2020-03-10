@@ -5,6 +5,8 @@ const ProductsRouter = require('./ProductsRouter')
 const ProductCatsRouter = require('./ProductCatsRouter')
 const UsersRouter = require('./UsersRouter')
 const RajaOngkirRouter = require('./RajaOngkirRouter')
+const CarouselRouter = require('./CarouselRouter')
+const CartsRouter = require('./CartsRouter')
 
 module.exports = {
     BrandsRouter,
@@ -13,5 +15,7 @@ module.exports = {
     ProductsRouter,
     ProductCatsRouter,
     UsersRouter,
-    RajaOngkirRouter
+    RajaOngkirRouter,
+    CarouselRouter,
+    CartsRouter
 }
