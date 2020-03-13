@@ -7,6 +7,7 @@ const UsersController = require('./UsersController')
 const RajaOngkirController = require('./RajaOngkirController')
 const CarouselController = require('./CarouselController')
 const CartsController = require('./CartsController')
+const TransactionsController = require('./TransactionsController')
 
 module.exports = {
     BrandsController,
@@ -17,5 +18,6 @@ module.exports = {
     UsersController,
     RajaOngkirController,
     CarouselController,
-    CartsController
+    CartsController,
+    TransactionsController
 }

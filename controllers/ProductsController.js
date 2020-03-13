@@ -4,10 +4,19 @@ const util = require('util');
 const dbquery = util.promisify(db.query).bind(db);
 const { uploadFile } = require('../config/uploadFile');
 
+const sortProduct = [
+	{id: 1, name: `id desc`},
+	{id: 2, name: 'name'},
+	{id: 3, name: 'name desc'},
+	{id: 4, name: 'price'},
+	{id: 5, name: 'price desc'}
+]
+
 module.exports = {
 	getProducts: async (req, res) => {
 		try {
 			let query;
+			let order = sortProduct.filter(i=> i.id === parseInt(req.query.sort))[0].name
 			let search = req.query.search? req.query.search.replace(/[^\s^\0-9a-zA-Z]/gi, '') : null
 			let filter = req.query.filter? db.escape(parseInt(req.query.filter)) : null
 			console.log('search: ', search)
@@ -19,7 +28,7 @@ module.exports = {
 						or description like '%${search}%'
 						or category like '%${search}%'`: ''}) as products
 						where categoryId = ${filter}
-						group by id order by categoryId, id desc
+						group by id order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
 			} else {
 				query = `select * from product_complete
@@ -28,7 +37,7 @@ module.exports = {
 						or brand like '%${search}%'
 						or description like '%${search}%'
 						or category like '%${search}%'`: ''}
-						group by id order by categoryId, id desc
+						group by id order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
 			}
 
@@ -67,12 +76,13 @@ module.exports = {
 
 	getProductByCategoryId: async (req, res) => {
 		try {
+			let order = sortProduct.filter(i=> i.id === parseInt(req.query.sort))[0].name
 			let query = `select p.id, b.brand, p.name, p.price, p.stock, pi.id as imageId, pi.image from products p
                         join product_cats pc on pc.productId = p.id
 						join brands b on b.id = p.brandId
 						left join product_images pi on pi.productId = p.id
 						where pc.categoryId = ?
-						group by p.id order by p.id desc
+						group by p.id order by p.${order}
                         ${req.query.limit ? `limit ? offset ?` : ''}`;
 			const result = await dbquery(query, [
 				req.params.categoryId,
@@ -89,10 +99,10 @@ module.exports = {
 			const productCats = await dbquery(query, [result.map((i) => i.id)]);
 
 			result.forEach((p) => {
-				var x = productCats.filter((i) => i.productId === p.id);
 				if (p.imageId === null) {
 					p.image = `/images/products/default.png`
 				}
+				var x = productCats.filter((i) => i.productId === p.id);
 				p.categories = x
 					.map((i) => {
 						return { categoryId: i.categoryId, category: i.category };
