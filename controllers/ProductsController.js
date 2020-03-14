@@ -5,28 +5,29 @@ const dbquery = util.promisify(db.query).bind(db);
 const { uploadFile } = require('../config/uploadFile');
 
 const sortProduct = [
-	{id: 1, name: `id desc`},
-	{id: 2, name: 'name'},
-	{id: 3, name: 'name desc'},
-	{id: 4, name: 'price'},
-	{id: 5, name: 'price desc'}
+	{ id: 1, name: `id desc` },
+	{ id: 2, name: 'name' },
+	{ id: 3, name: 'name desc' },
+	{ id: 4, name: 'price' },
+	{ id: 5, name: 'price desc' }
 ]
 
 module.exports = {
 	getProducts: async (req, res) => {
 		try {
+			console.log(req.query)
 			let query;
-			let order = sortProduct.filter(i=> i.id === parseInt(req.query.sort))[0].name
-			let search = req.query.search? req.query.search.replace(/[^\s^\0-9a-zA-Z]/gi, '') : null
-			let filter = req.query.filter? db.escape(parseInt(req.query.filter)) : null
+			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
+			let search = req.query.search ? req.query.search.replace(/[^\s^\0-9a-zA-Z]/gi, '') : null
+			let filter = req.query.filter ? db.escape(parseInt(req.query.filter)) : null
 			console.log('search: ', search)
 			console.log('filter: ', filter)
-			if(filter!==null){
+			if (filter !== null) {
 				query = `select * from (select * from product_complete
 						${search !== null ? `where name like '%${search}%'
 						or brand like '%${search}%'
 						or description like '%${search}%'
-						or category like '%${search}%'`: ''}) as products
+						or category like '%${search}%'` : ''}) as products
 						where categoryId = ${filter}
 						group by id order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
@@ -36,7 +37,7 @@ module.exports = {
 						name like '%${search}%'
 						or brand like '%${search}%'
 						or description like '%${search}%'
-						or category like '%${search}%'`: ''}
+						or category like '%${search}%'` : ''}
 						group by id order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
 			}
@@ -51,8 +52,8 @@ module.exports = {
 					p.image = `/images/products/default.png`
 				}
 			});
-			
-			if(result.length===0){
+
+			if (result.length === 0) {
 				return res.status(404).send({ message: 'product not found' })
 			}
 			res.status(200).send(result);
@@ -76,7 +77,7 @@ module.exports = {
 
 	getProductByCategoryId: async (req, res) => {
 		try {
-			let order = sortProduct.filter(i=> i.id === parseInt(req.query.sort))[0].name
+			let order = sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name
 			let query = `select p.id, b.brand, p.name, p.price, p.stock, pi.id as imageId, pi.image from products p
                         join product_cats pc on pc.productId = p.id
 						join brands b on b.id = p.brandId
@@ -183,7 +184,7 @@ module.exports = {
 				await dbquery(query, [img]);
 			}
 
-			let productCat = data.newCategories.sort((a,b)=> b-a).map((i) => [result.insertId, i]);
+			let productCat = data.newCategories.sort((a, b) => b - a).map((i) => [result.insertId, i]);
 			query = `INSERT INTO product_cats (productId,categoryId) VALUES ?`;
 			await dbquery(query, [productCat]);
 
@@ -234,7 +235,7 @@ module.exports = {
 			query = `DELETE FROM product_cats WHERE productId = ?`;
 			await dbquery(query, [id]);
 
-			let productCat = data.newCategories.sort((a,b)=> b-a).map((i) => [id, i]);
+			let productCat = data.newCategories.sort((a, b) => b - a).map((i) => [id, i]);
 			console.log('productCat', productCat)
 			query = `INSERT INTO product_cats (productId,categoryId) VALUES ?`;
 			await dbquery(query, [productCat]);

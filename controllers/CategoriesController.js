@@ -42,7 +42,10 @@ module.exports = {
 
     getChildOfMostParent: async (req, res) => {
         try {
-            let query = `select * from category_complete where mainParentId = ?`
+            let query = `SELECT cc.*, count(pc.productId) as count FROM category_complete cc
+                        left join product_cats pc on pc.categoryId = cc.id
+                        where mainParentId = ?
+                        group by cc.id order by cc.id`
             const result = await dbquery(query, [req.params.mainParentId])
             res.status(200).send(result)
         } catch (error) {

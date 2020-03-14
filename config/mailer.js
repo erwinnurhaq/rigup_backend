@@ -47,14 +47,14 @@ module.exports = {
                         <th>Quantity</th>
                         <th>Total Price</th>
                     </tr>
-                    ${items.map(i=> {
-                        return `<tr>
+                    ${items.map(i => {
+                return `<tr>
                                     <td>${i.name}</td>
                                     <td>${i.productPrice}</td>
                                     <td>${i.quantity}</td>
                                     <td>${i.totalPrice}</td>
                                 </tr>`
-                    })}
+            })}
                 </table></br>
                 <h3>Please confirm your payment and include your transaction receipt</h3></br>
                 <div>
@@ -85,9 +85,10 @@ module.exports = {
         return {
             from: 'Admin <simkalastoforka@gmail.com>',
             to: destination,
-            subject: `Payment Success for ${tr.transactionCode} - RIG-UP!`,
+            subject: `INVOICE - ${tr.transactionCode} - Payment Success - RIG-UP!`,
             text: 'INVOICE',
-            html: `<h1>PAYMENT SUCCESS</h1><br/>
+            html: `<h1>INVOICE - ${tr.transactionCode}</h1><br/>
+            <p>Congratulation, payment success and has been verified.<p><br/>
             <p>Here is your transaction detail:<p><br/>
             <ul>
                 <li>Transaction Code : ${tr.transactionCode}</li>
@@ -108,14 +109,95 @@ module.exports = {
                     <th>Quantity</th>
                     <th>Total Price</th>
                 </tr>
-                ${items.map(i=> {
-                    return `<tr>
+                ${items.map(i => {
+                return `<tr>
                                 <td>${i.name}</td>
                                 <td>${i.productPrice}</td>
                                 <td>${i.quantity}</td>
                                 <td>${i.totalPrice}</td>
                             </tr>`
-                })}
+            })}
+            </table>
+            <p>--- Thank you - RIG-UP! ---</p> `
+        }
+    },
+    transactionFailedEmail: (destination, tr, items) => {
+        return {
+            from: 'Admin <simkalastoforka@gmail.com>',
+            to: destination,
+            subject: `Transaction Failed for ${tr.transactionCode} - RIG-UP!`,
+            text: 'Transaction Failed',
+            html: `<h1>Transaction Failed - ${tr.transactionCode}</h1><br/>
+            <p>Sorry, we cannot verify your uploaded payment receipt.<p><br/>
+            <p>For further information, please contact our costumer service at 022-222222<p><br/>
+            <p>or visit our shop at Jl. Entah Dimana no. XX - Jekardah Pusat<p><br/>
+            <p>Here is your transaction detail:<p><br/>
+            <ul>
+                <li>Transaction Code : ${tr.transactionCode}</li>
+                <li>Transaction Date : ${tr.tDate}</li>
+                <li>Delivery Address : ${tr.deliveryAddress}</li>
+                <li>Total Product : ${tr.totalProduct}</li>
+                <li>Total Quantity : ${tr.totalQuantity}</li>
+                <li>Total Price : ${tr.totalPrice}</li>
+                <li>Shipping Courier : ${tr.shippingCourier}</li>
+                <li>Shipping Cost : ${tr.shippingCost}</li>
+                <li>Total Cost : ${tr.totalCost}</li>
+                <li>Paid Status : PAYMENT VERIFICATION FAILED</li>
+            </ul></br>
+            <table>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Product Price</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                </tr>
+                ${items.map(i => {
+                return `<tr>
+                                <td>${i.name}</td>
+                                <td>${i.productPrice}</td>
+                                <td>${i.quantity}</td>
+                                <td>${i.totalPrice}</td>
+                            </tr>`
+            })}
+            </table>
+            <p>--- Thank you - RIG-UP! ---</p> `
+        }
+    },
+    transactionItemDeliveredEmail: (destination, tr, items) => {
+        return {
+            from: 'Admin <simkalastoforka@gmail.com>',
+            to: destination,
+            subject: `Item Delivered to Destination for ${tr.transactionCode} - RIG-UP!`,
+            text: 'INVOICE',
+            html: `<h1>ITEM DELIVERED</h1><br/>
+            <p>Here is your transaction detail:<p><br/>
+            <ul>
+                <li>Transaction Code : ${tr.transactionCode}</li>
+                <li>Transaction Date : ${tr.tDate}</li>
+                <li>Delivery Address : ${tr.deliveryAddress}</li>
+                <li>Total Product : ${tr.totalProduct}</li>
+                <li>Total Quantity : ${tr.totalQuantity}</li>
+                <li>Total Price : ${tr.totalPrice}</li>
+                <li>Shipping Courier : ${tr.shippingCourier}</li>
+                <li>Shipping Cost : ${tr.shippingCost}</li>
+                <li>Total Cost : ${tr.totalCost}</li>
+                <li>Paid Status : PAID</li>
+            </ul></br>
+            <table>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Product Price</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                </tr>
+                ${items.map(i => {
+                return `<tr>
+                                <td>${i.name}</td>
+                                <td>${i.productPrice}</td>
+                                <td>${i.quantity}</td>
+                                <td>${i.totalPrice}</td>
+                            </tr>`
+            })}
             </table>
             <p>--- Thank you - RIG-UP! ---</p> `
         }
