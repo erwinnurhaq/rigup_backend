@@ -11,9 +11,11 @@ router.delete('/:id', verifyAdmin, UsersController.deleteById)
 //---------------
 
 router.post('/', UsersController.register)
-router.patch('/', verifyUser, UsersController.edit)
-router.patch('/changepass', verifyUser, UsersController.changePass)
+router.put('/', verifyUser, UsersController.edit)
+router.put('/changepass', verifyUser, UsersController.changePass)
 
+router.post('/resetpassword', verifyEmail, UsersController.resetPassword)
+router.post('/sendresetpassword', UsersController.sendResetPassword)
 router.post('/verify', verifyEmail, UsersController.verifyEmail)
 router.post('/resendverify', UsersController.resendVerifyEmail)
 router.post('/login', UsersController.login)

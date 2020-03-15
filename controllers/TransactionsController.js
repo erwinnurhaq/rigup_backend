@@ -15,26 +15,49 @@ const dbquery = util.promisify(db.query).bind(db);
 const sendMail = util.promisify(transporter.sendMail).bind(transporter)
 
 const sortTransaction = [
-    { id: 1, name: `t.id desc` },
-    { id: 2, name: `t.paidStatus` },
-    { id: 3, name: `t.paidStatus desc` },
-    { id: 4, name: `t.deliveredStatus` },
-    { id: 5, name: `t.deliveredStatus desc` },
+    { id: 1, name: `id desc` },
+    { id: 2, name: `paidStatus` },
+    { id: 3, name: `paidStatus desc` },
+    { id: 4, name: `deliveredStatus` },
+    { id: 5, name: `deliveredStatus desc` },
 ]
 
 module.exports = {
 
     getAllTransactions: async (req, res) => {
         try {
-            let search = req.query.search ? req.query.search.replace(/[^\s^\0-9a-zA-Z]/gi, '') : null
-            let order = sortTransaction.filter(i => i.id === parseInt(req.query.sort))[0].name
+            let search = req.query.search ? req.query.search.replace(/[^0-9a-zA-Z\s-]/gi, '') : null
+            let order = req.query.sort ? sortTransaction.filter(i => i.id === parseInt(req.query.sort))[0].name : `id desc`
             let query = `SELECT COUNT(id) as sum FROM transactions WHERE
                         ${search ? `transactionCode = ${db.escape(search)} and ` : ``} deliveredStatus < 2`
             const allCount = await dbquery(query)
             query = `SELECT t.*, u.username, u.email FROM transactions t
                         join users u on u.id = t.userId WHERE
                         ${search ? `t.transactionCode = ${db.escape(search)} and ` : ``} t.deliveredStatus < 2
-                        order by ${order}
+                        order by t.${order}
+                        ${req.query.limit ? `limit ? offset ?` : ''}`
+            const transactionList = await dbquery(query, [
+                parseInt(req.query.limit),
+                parseInt(req.query.offset)
+            ])
+            res.status(200).send({ allCount: allCount[0].sum, transactionList })
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    getAllHistories: async (req, res) => {
+        try {
+            console.log('ok')
+            let search = req.query.search ? req.query.search.replace(/[^0-9a-zA-Z\s-]/gi, '') : null
+            let order = req.query.sort ? sortTransaction.filter(i => i.id === parseInt(req.query.sort))[0].name : `id desc`
+            let query = `SELECT COUNT(id) as sum FROM transactions WHERE
+                        ${search ? `transactionCode = ${db.escape(search)} and ` : ``} deliveredStatus >= 2`
+            const allCount = await dbquery(query)
+            query = `SELECT t.*, u.username, u.email FROM transactions t
+                        join users u on u.id = t.userId WHERE
+                        ${search ? `t.transactionCode = ${db.escape(search)} and ` : ``} t.deliveredStatus >= 2
+                        order by t.${order}
                         ${req.query.limit ? `limit ? offset ?` : ''}`
             const transactionList = await dbquery(query, [
                 parseInt(req.query.limit),
@@ -52,6 +75,17 @@ module.exports = {
                         AND deliveredStatus < 2 order by id desc`
             const userTransactions = await dbquery(query, [req.user.id])
             res.status(200).send(userTransactions)
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    getUserHistories: async (req, res) => {
+        try {
+            let query = `SELECT * FROM transactions WHERE userId = ?
+                        AND deliveredStatus >= 2 order by id desc`
+            const userHistories = await dbquery(query, [req.user.id])
+            res.status(200).send(userHistories)
         } catch (error) {
             res.status(500).send(error)
         }

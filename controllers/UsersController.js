@@ -3,7 +3,7 @@ const moment = require('moment')
 const bcrypt = require('bcryptjs')
 const { createToken } = require('../config/jwt')
 const db = require('../config/database')
-const { transporter, verifyEmail } = require('../config/mailer');
+const { transporter, verifyEmail, sendMailResetPassword } = require('../config/mailer');
 
 const dbquery = util.promisify(db.query).bind(db)
 const sendMail = util.promisify(transporter.sendMail).bind(transporter)
@@ -133,14 +133,17 @@ module.exports = {
             const result = await dbquery(query, [{
                 fullname: req.body.fullname,
                 genderId: req.body.genderId,
-                username: req.body.username,
                 address: req.body.address,
                 cityId: req.body.cityId,
                 phone: req.body.phone,
                 updatedTime: currentTime()
             }, req.user.id])
 
-            res.status(200).send(result)
+            query = `SELECT * FROM user_complete WHERE id = ?`
+            let user = await dbquery(query, [req.user.id])
+
+            delete user[0].password    //so it won't be included to response data
+            res.status(200).send({ user: user[0] })
         } catch (error) {
             res.status(500).send(error)
         }
@@ -176,12 +179,16 @@ module.exports = {
             if (user.length !== 0 && bcrypt.compareSync(currentPassword, user[0].password)) {
 
                 query = 'UPDATE users SET ? WHERE id = ?'
-                const result = await dbquery(query, [{
+                await dbquery(query, [{
                     password: bcrypt.hashSync(newPassword, 10),
                     updatedTime: currentTime()
                 }, req.user.id])
 
-                res.status(200).send(result)
+                query = `SELECT * FROM user_complete WHERE id = ?`
+                let user = await dbquery(query, [req.user.id])
+
+                delete user[0].password    //so it won't be included to response data
+                res.status(200).send({ user: user[0] })
             } else {
                 res.status(400).send({ message: 'Wrong current password' })
             }
@@ -279,5 +286,60 @@ module.exports = {
             res.status(500).send(error)
         }
     },
+
+    //sendMailResetPassword
+    sendResetPassword: async (req, res) => {
+        try {
+            console.log(req.body)
+            let query = `select * from user_complete where email = ?`
+            const user = await dbquery(query, [req.body.email])
+            if (user.length !== 0) {
+                console.log(user)
+                let token = createToken({
+                    id: user[0].id,
+                    email: user[0].email,
+                    roleId: user[0].roleId,
+                    verified: user[0].verified
+                }, { expiresIn: '1h' })
+                let mailOptions = sendMailResetPassword(req.body.email, token)
+                const result = await sendMail(mailOptions)
+                console.log(result)
+                if (result.accepted) {
+                    delete user[0].roleId
+                    res.status(200).send({ user: user[0] })
+                } else {
+                    res.status(500).send({ message: 'cannot send email verification' })
+                }
+            } else {
+                res.status(404).send({ message: 'email not found' })
+            }
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    //resetPassword
+    resetPassword: async (req, res) => {
+        try {
+            console.log(req.user)
+            let query = `select * from user_complete where id = ? and email = ?`
+            const user = await dbquery(query, [req.user.id, req.user.email])
+            if (user.length !== 0) {
+                console.log(user)
+                query = 'UPDATE users SET ? WHERE id = ?'
+                const result = await dbquery(query, [{
+                    password: bcrypt.hashSync(req.body.password, 10),
+                    updatedTime: currentTime()
+                }, user[0].id])
+                console.log(result)
+                res.status(200).send(result)
+
+            } else {
+                res.status(404).send({ message: 'user not found' })
+            }
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    }
 
 }

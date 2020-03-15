@@ -201,5 +201,14 @@ module.exports = {
             </table>
             <p>--- Thank you - RIG-UP! ---</p> `
         }
-    }
+    },
+    sendMailResetPassword: (destination, token) => {
+        return {
+            from: 'Admin <simkalastoforka@gmail.com>',
+            to: destination,
+            subject: 'Reset Password Account - RIG-UP!',
+            text: 'Reset Password',
+            html: `Thank you.<br/>Please click link below to reset your password:<br/><a href="http://localhost:3000/resetpassword/${token}">RESET PASSWORD</a> `
+        }
+    },
 }

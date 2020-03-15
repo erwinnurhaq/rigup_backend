@@ -9,7 +9,9 @@ const sortProduct = [
 	{ id: 2, name: 'name' },
 	{ id: 3, name: 'name desc' },
 	{ id: 4, name: 'price' },
-	{ id: 5, name: 'price desc' }
+	{ id: 5, name: 'price desc' },
+	{ id: 6, name: 'stock' },
+	{ id: 7, name: 'stock desc' }
 ]
 
 module.exports = {
@@ -18,7 +20,7 @@ module.exports = {
 			console.log(req.query)
 			let query;
 			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
-			let search = req.query.search ? req.query.search.replace(/[^\s^\0-9a-zA-Z]/gi, '') : null
+			let search = req.query.search ? req.query.search.replace(/[^0-9a-zA-Z\s-]/gi, '') : null
 			let filter = req.query.filter ? db.escape(parseInt(req.query.filter)) : null
 			console.log('search: ', search)
 			console.log('filter: ', filter)
@@ -77,7 +79,7 @@ module.exports = {
 
 	getProductByCategoryId: async (req, res) => {
 		try {
-			let order = sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name
+			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
 			let query = `select p.id, b.brand, p.name, p.price, p.stock, pi.id as imageId, pi.image from products p
                         join product_cats pc on pc.productId = p.id
 						join brands b on b.id = p.brandId
