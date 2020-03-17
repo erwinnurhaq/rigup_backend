@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { UsersController } = require('../controllers')
-const { verifyUser, verifyAdmin, verifyEmail } = require('../config/jwt')
+const { verifyUser, verifyAdmin, verifyEmail, verifyGoogle } = require('../config/jwt')
 
 //for admin only
 router.get('/', verifyAdmin, UsersController.getUsers)
@@ -20,6 +20,7 @@ router.post('/verify', verifyEmail, UsersController.verifyEmail)
 router.post('/resendverify', UsersController.resendVerifyEmail)
 router.post('/login', UsersController.login)
 router.post('/keeplogin', verifyUser, UsersController.keepLogin)
+router.post('/loginbygoogle', verifyGoogle, UsersController.loginByGoogle)
 router.get('/citylist', UsersController.cityList)
 
 

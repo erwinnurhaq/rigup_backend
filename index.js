@@ -1,4 +1,5 @@
 const express = require('express');
+const dotenv = require('dotenv').config()
 const app = express();
 const PORT = process.env.PORT;
 const cors = require('cors');
@@ -21,6 +22,7 @@ app.use('/products', Routers.ProductsRouter);
 app.use('/productcats', Routers.ProductCatsRouter);
 app.use('/users', Routers.UsersRouter);
 app.use('/carts', Routers.CartsRouter);
+app.use('/wishlists', Routers.WishlistRouter);
 app.use('/transactions', Routers.TransactionsRouter);
 app.use('/ro', Routers.RajaOngkirRouter);
 app.use('/carousels', Routers.CarouselRouter);

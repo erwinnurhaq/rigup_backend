@@ -48,7 +48,6 @@ module.exports = {
 
     getAllHistories: async (req, res) => {
         try {
-            console.log('ok')
             let search = req.query.search ? req.query.search.replace(/[^0-9a-zA-Z\s-]/gi, '') : null
             let order = req.query.sort ? sortTransaction.filter(i => i.id === parseInt(req.query.sort))[0].name : `id desc`
             let query = `SELECT COUNT(id) as sum FROM transactions WHERE

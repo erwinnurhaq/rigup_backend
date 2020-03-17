@@ -1,6 +1,6 @@
 const { init } = require('rajaongkir-node-js')
 const request = init('fbef9e5e65c5936c9e129b6c7f900687', 'starter')
-
+const axios = require('axios')
 
 module.exports = {
     getProvince: async (req, res) => {
@@ -37,6 +37,16 @@ module.exports = {
             // console.log(costPrice)
             // return res.send({ price: costPrice });
             return res.send(js.rajaongkir.results[0]);
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    news: async (req, res) => {
+        try {
+            let news = await axios.get('http://newsapi.org/v2/top-headlines?country=us&category=technology&apiKey=8dd88ad1f8d24473add826afe0ede957')
+            console.log(news)
+            res.status(200).send(news.data)
         } catch (error) {
             res.status(500).send(error)
         }

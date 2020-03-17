@@ -20,6 +20,18 @@ module.exports = {
             html: `Thank you for register.<br/>Please click link verification below:<br/><a href="http://localhost:3000/verifying/${token}">VERIFY</a> `
         }
     },
+    welcomeEmail: (destination) => {
+        return {
+            from: 'Admin <simkalastoforka@gmail.com>',
+            to: destination,
+            subject: 'Registration Success for RIG-UP!',
+            text: 'Registration Success',
+            html: `<h1>WELCOME TO RIG-UP!</h1><br/>
+                    <p>Thank you for joining us, and let's rig up your gear!<p>
+                    <br/><br/>
+                    <p>--- RIG-UP! ---</p>`
+        }
+    },
     transactionWaitingPaymentEmail: (destination, tr, items) => {
         return {
             from: 'Admin <simkalastoforka@gmail.com>',
@@ -30,7 +42,7 @@ module.exports = {
                 <p>Here is your transaction detail:<p><br/>
                 <ul>
                     <li>Transaction Code : ${tr.transactionCode}</li>
-                    <li>Transaction Date : ${tr.tDate}</li>
+                    <li>Transaction Date : ${tr.transactionDate}</li>
                     <li>Delivery Address : ${tr.deliveryAddress}</li>
                     <li>Total Product : ${tr.totalProduct}</li>
                     <li>Total Quantity : ${tr.totalQuantity}</li>
@@ -92,7 +104,7 @@ module.exports = {
             <p>Here is your transaction detail:<p><br/>
             <ul>
                 <li>Transaction Code : ${tr.transactionCode}</li>
-                <li>Transaction Date : ${tr.tDate}</li>
+                <li>Transaction Date : ${tr.transactionDate}</li>
                 <li>Delivery Address : ${tr.deliveryAddress}</li>
                 <li>Total Product : ${tr.totalProduct}</li>
                 <li>Total Quantity : ${tr.totalQuantity}</li>
@@ -134,7 +146,7 @@ module.exports = {
             <p>Here is your transaction detail:<p><br/>
             <ul>
                 <li>Transaction Code : ${tr.transactionCode}</li>
-                <li>Transaction Date : ${tr.tDate}</li>
+                <li>Transaction Date : ${tr.transactionDate}</li>
                 <li>Delivery Address : ${tr.deliveryAddress}</li>
                 <li>Total Product : ${tr.totalProduct}</li>
                 <li>Total Quantity : ${tr.totalQuantity}</li>
@@ -173,7 +185,7 @@ module.exports = {
             <p>Here is your transaction detail:<p><br/>
             <ul>
                 <li>Transaction Code : ${tr.transactionCode}</li>
-                <li>Transaction Date : ${tr.tDate}</li>
+                <li>Transaction Date : ${tr.transactionDate}</li>
                 <li>Delivery Address : ${tr.deliveryAddress}</li>
                 <li>Total Product : ${tr.totalProduct}</li>
                 <li>Total Quantity : ${tr.totalQuantity}</li>

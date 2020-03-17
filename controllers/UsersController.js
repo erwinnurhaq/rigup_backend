@@ -3,7 +3,7 @@ const moment = require('moment')
 const bcrypt = require('bcryptjs')
 const { createToken } = require('../config/jwt')
 const db = require('../config/database')
-const { transporter, verifyEmail, sendMailResetPassword } = require('../config/mailer');
+const { transporter, verifyEmail, sendMailResetPassword, welcomeEmail } = require('../config/mailer');
 
 const dbquery = util.promisify(db.query).bind(db)
 const sendMail = util.promisify(transporter.sendMail).bind(transporter)
@@ -98,9 +98,10 @@ module.exports = {
     //login function with email/username and password
     login: async (req, res) => {
         try {
+            console.log(req.body.userOrEmail)
             let query = `SELECT * FROM user_complete WHERE username = ? OR email = ?`
             let user = await dbquery(query, [req.body.userOrEmail, req.body.userOrEmail])
-
+            console.log(user)
             if (user.length !== 0 && bcrypt.compareSync(req.body.password, user[0].password)) {
                 let dataForToken = {
                     id: user[0].id,
@@ -120,6 +121,64 @@ module.exports = {
                 res.status(200).send({ user: user[0], token })
             } else {
                 res.status(404).send({ message: 'Username or password is wrong' })
+            }
+        } catch (error) {
+            res.status(500).send(error)
+        }
+    },
+
+    //login function with email/username and password
+    loginByGoogle: async (req, res) => {
+        try {
+            let query = `SELECT * FROM user_complete WHERE email = ?`
+            let user = await dbquery(query, [req.user.email])
+            if (user.length === 0) {
+                let hash = bcrypt.hashSync(req.user.sub, 10)
+
+                query = 'INSERT INTO users SET ?'
+                let insert = await dbquery(query, {
+                    fullname: req.user.name,
+                    username: req.user.given_name,
+                    email: req.user.email,
+                    password: hash,
+                    createdTime: currentTime(),
+                    roleId: 2,
+                    verified: 1
+                })
+
+                query = `SELECT * FROM user_complete WHERE id = ?`
+                user = await dbquery(query, [insert.insertId])
+
+                let token = createToken({
+                    id: insert.insertId,
+                    email: req.user.email,
+                    roleId: 2,
+                    verified: 1,
+                    tokenGoogle: req.user.tokenGoogle
+                })
+
+                let mailOptions = welcomeEmail(req.user.email)
+                await sendMail(mailOptions)
+
+                delete user[0].password    //so it won't be included to response data
+                res.status(200).send({ user: user[0], token })
+            } else {
+                if (bcrypt.compareSync(req.user.sub, user[0].password)) {
+                    query = 'UPDATE users SET ? WHERE id = ?'
+                    await dbquery(query, [{
+                        lastLogin: currentTime()
+                    }, user[0].id])
+                    let token = createToken({
+                        id: user[0].id,
+                        email: req.user.email,
+                        roleId: 2,
+                        verified: 1,
+                        tokenGoogle: req.user.tokenGoogle
+                    })
+                    res.status(200).send({ user: user[0], token })
+                } else {
+                    res.status(400).send({ message: 'Email has been registered, please login using password instead.' })
+                }
             }
         } catch (error) {
             res.status(500).send(error)
@@ -250,6 +309,10 @@ module.exports = {
         }
 
         let token = createToken(dataForToken, { expiresIn: '12h' })
+
+        let mailOptions = welcomeEmail(req.user.email)
+        console.log(mailOptions)
+        await sendMail(mailOptions)
 
         delete user[0].password    //so it won't be included to response data
         res.status(200).send({ user: { ...user[0], verified: 1 }, token })

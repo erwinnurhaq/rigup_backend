@@ -8,6 +8,7 @@ const RajaOngkirRouter = require('./RajaOngkirRouter')
 const CarouselRouter = require('./CarouselRouter')
 const CartsRouter = require('./CartsRouter')
 const TransactionsRouter = require('./TransactionsRouter')
+const WishlistRouter = require('./WishlistRouter')
 
 module.exports = {
     BrandsRouter,
@@ -19,5 +20,6 @@ module.exports = {
     RajaOngkirRouter,
     CarouselRouter,
     CartsRouter,
-    TransactionsRouter
+    TransactionsRouter,
+    WishlistRouter
 }
