@@ -7,6 +7,7 @@ const UsersController = require('./UsersController')
 const RajaOngkirController = require('./RajaOngkirController')
 const CarouselController = require('./CarouselController')
 const CartsController = require('./CartsController')
+const BuildController = require('./BuildController')
 const TransactionsController = require('./TransactionsController')
 const WishlistController = require('./WishlistController')
 
@@ -20,6 +21,7 @@ module.exports = {
     RajaOngkirController,
     CarouselController,
     CartsController,
+    BuildController,
     TransactionsController,
     WishlistController
 }

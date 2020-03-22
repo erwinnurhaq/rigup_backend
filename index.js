@@ -22,6 +22,7 @@ app.use('/products', Routers.ProductsRouter);
 app.use('/productcats', Routers.ProductCatsRouter);
 app.use('/users', Routers.UsersRouter);
 app.use('/carts', Routers.CartsRouter);
+app.use('/builds', Routers.BuildRouter);
 app.use('/wishlists', Routers.WishlistRouter);
 app.use('/transactions', Routers.TransactionsRouter);
 app.use('/ro', Routers.RajaOngkirRouter);

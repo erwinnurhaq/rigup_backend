@@ -73,18 +73,21 @@ module.exports = {
                     <div>
                         <div>
                             <p>Bank Mandiri</p>
+                            <p>PT. RIGUP INDONESIA</p>
                             <h3>0700 000 899 992</h3>
                         </div>
                     </div>
                     <div>
                         <div>
                             <p>Bank BCA</p>
+                            <p>PT. RIGUP INDONESIA</p>
                             <h3>731 025 2527</h3>
                         </div>
                     </div>
                     <div>
                         <div>
                             <p>Bank BNI</p>
+                            <p>PT. RIGUP INDONESIA</p>
                             <h3>023 827 2088</h3>
                         </div>
                     </div>

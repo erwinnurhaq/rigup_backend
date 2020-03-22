@@ -11,7 +11,8 @@ const sortProduct = [
 	{ id: 4, name: 'price' },
 	{ id: 5, name: 'price desc' },
 	{ id: 6, name: 'stock' },
-	{ id: 7, name: 'stock desc' }
+	{ id: 7, name: 'stock desc' },
+	{ id: 8, name: 'brandId' }
 ]
 
 module.exports = {
@@ -230,7 +231,7 @@ module.exports = {
 				console.log('delete done')
 			}
 
-			console.log(data.newProduct)
+			console.log('dataNewProduct: ', data.newProduct)
 			query = `UPDATE products SET ? WHERE id = ${db.escape(id)}`;
 			const result = await dbquery(query, data.newProduct);
 
