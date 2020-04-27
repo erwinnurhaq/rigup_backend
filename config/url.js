@@ -1,3 +1,3 @@
 module.exports = {
-    FRONTEND_URL: `http://rigin.my.id`
+    FRONTEND_URL: `http://localhost:3000`
 }

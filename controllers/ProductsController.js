@@ -22,16 +22,15 @@ module.exports = {
 			let query;
 			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
 			let search = req.query.search ? req.query.search.replace(/[^0-9a-zA-Z\s-]/gi, '') : null
-			let filter = req.query.filter ? db.escape(parseInt(req.query.filter)) : null
+			let filter = req.query.filter && parseInt(req.query.filter) > 0 ? db.escape(parseInt(req.query.filter)) : null
 			console.log('search: ', search)
 			console.log('filter: ', filter)
 			if (filter !== null) {
 				query = `select * from (select * from product_complete
 						${search !== null ? `where name like '%${search}%'
 						or brand like '%${search}%'
-						or description like '%${search}%'
 						or category like '%${search}%'` : ''}) as products
-						where categoryId = ${filter}
+						where mainParentId = ${filter} or categoryId = ${filter}
 						group by id order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
 			} else {
@@ -39,7 +38,6 @@ module.exports = {
 						${search !== null ? `where
 						name like '%${search}%'
 						or brand like '%${search}%'
-						or description like '%${search}%'
 						or category like '%${search}%'` : ''}
 						group by id order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
@@ -81,15 +79,15 @@ module.exports = {
 	getProductByCategoryId: async (req, res) => {
 		try {
 			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
+			let cat = parseInt(req.params.categoryId)
 			let query = `select p.id, b.brand, p.name, p.price, p.stock, pi.id as imageId, pi.image from products p
                         join product_cats pc on pc.productId = p.id
 						join brands b on b.id = p.brandId
 						left join product_images pi on pi.productId = p.id
-						where pc.categoryId = ?
+						${cat !== 0 ? `where pc.categoryId = ${db.escape(cat)}` : ''}
 						group by p.id order by p.${order}
                         ${req.query.limit ? `limit ? offset ?` : ''}`;
 			const result = await dbquery(query, [
-				req.params.categoryId,
 				parseInt(req.query.limit),
 				parseInt(req.query.offset)
 			]);
@@ -121,11 +119,12 @@ module.exports = {
 
 	getCountProductByCategoryId: async (req, res) => {
 		try {
+			let cat = parseInt(req.params.categoryId)
 			let query = `select count(p.id) as count from products p
-                        join product_cats pc on pc.productId = p.id
-                        join brands b on b.id = p.brandId
-                        where pc.categoryId = ?`;
-			const result = await dbquery(query, [req.params.categoryId]);
+                        ${cat !== 0 ? `join product_cats pc on pc.productId = p.id
+						join brands b on b.id = p.brandId
+						where pc.categoryId = ${db.escape(cat)}` : ''}`;
+			const result = await dbquery(query);
 			if (result.length === 0) {
 				return res.status(404).send({ message: 'product not found' });
 			}
