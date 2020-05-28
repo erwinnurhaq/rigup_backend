@@ -1,5 +1,4 @@
 const nodemailer = require('nodemailer')
-const { FRONTEND_URL } = require('./url')
 
 module.exports = {
     transporter: nodemailer.createTransport({
@@ -18,7 +17,7 @@ module.exports = {
             to: destination,
             subject: 'User Account Verification for RIG-UP!',
             text: 'Verification',
-            html: `Thank you for register.<br/>Please click link verification below:<br/><a href="${FRONTEND_URL}/verifying/${token}">VERIFY</a> `
+            html: `Thank you for register.<br/>Please click link verification below:<br/><a href="${process.env.FRONTEND_URL}/verifying/${token}">VERIFY</a> `
         }
     },
     welcomeEmail: (destination) => {
@@ -224,7 +223,7 @@ module.exports = {
             to: destination,
             subject: 'Reset Password Account - RIG-UP!',
             text: 'Reset Password',
-            html: `Thank you.<br/>Please click link below to reset your password:<br/><a href="${FRONTEND_URL}/resetpassword/${token}">RESET PASSWORD</a> `
+            html: `Thank you.<br/>Please click link below to reset your password:<br/><a href="${process.env.FRONTEND_URL}/resetpassword/${token}">RESET PASSWORD</a> `
         }
     },
 }
