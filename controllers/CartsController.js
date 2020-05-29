@@ -4,9 +4,8 @@ const dbquery = util.promisify(db.query).bind(db);
 
 const queryget = `SELECT uc.*, pc.brand, pc.name, pc.weight, pc.wattage, pc.stock,
                 pc.price, pc.image, pc.categoryId, pc.category FROM user_carts uc
-                join product_complete pc on pc.id = uc.productId
-                where userId = ?
-                group by uc.productId
+                join product_complete_fix pc on pc.id = uc.productId
+                where userId = ? and mainParentId is null
                 order by uc.id desc`
 
 module.exports = {

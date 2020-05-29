@@ -21,25 +21,41 @@ module.exports = {
 			console.log(req.query)
 			let query;
 			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
+			console.log(req.query.search)
 			let search = req.query.search ? req.query.search.replace(/[^0-9a-zA-Z\s-]/gi, '') : null
 			let filter = req.query.filter && parseInt(req.query.filter) > 0 ? db.escape(parseInt(req.query.filter)) : null
-			console.log('search: ', search)
-			console.log('filter: ', filter)
-			if (filter !== null) {
-				query = `select * from (select * from product_complete
-						${search !== null ? `where name like '%${search}%'
-						or brand like '%${search}%'
-						or category like '%${search}%'` : ''}) as products
-						where mainParentId = ${filter} or categoryId = ${filter}
-						group by id order by ${order}
+			if(!search && !filter){
+				query = `select * from product_complete_fix
+						where mainParentId is null order by ${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
-			} else {
-				query = `select * from product_complete
-						${search !== null ? `where
-						name like '%${search}%'
+			} else if(search && !filter){
+				query =`select p.*, cl.id as categoryId, cl.category, cl.mainParentId, img.image from
+						(select id, brandId, name, description, weight, wattage, price, stock, brand from product_complete_fix
+						where name like '%${search}%'
 						or brand like '%${search}%'
-						or category like '%${search}%'` : ''}
-						group by id order by ${order}
+						or category like '%${search}%'
+						group by id) p
+						join product_cats pc on p.id = pc.productId
+						join category_leaf cl on cl.id = pc.categoryId
+						join (select pi.productId, pi.image
+							from (select min(id) as id from product_images group by productId) i
+							join product_images pi on pi.id = i.id) img on img.productId = p.id
+						order by p.${order}
+						${req.query.limit ? `limit ? offset ?` : ''}`;
+			} else if(search && filter){
+				query =`select p.*, cl.id as categoryId, cl.category, cl.mainParentId, img.image from
+						(select id, brandId, name, description, weight, wattage, price, stock, brand from product_complete_fix
+						where name like '%${search}%'
+						or brand like '%${search}%'
+						or category like '%${search}%'
+						group by id) p
+						join product_cats pc on p.id = pc.productId
+						join category_leaf cl on cl.id = pc.categoryId
+						join (select pi.productId, pi.image
+							from (select min(id) as id from product_images group by productId) i
+							join product_images pi on pi.id = i.id) img on img.productId = p.id
+						where categoryId = ${filter} or mainParentId = ${filter}
+						order by p.${order}
 						${req.query.limit ? `limit ? offset ?` : ''}`;
 			}
 
@@ -48,10 +64,20 @@ module.exports = {
 				parseInt(req.query.offset)
 			]);
 
+			query = `select * from product_cats_complete
+                    where productId in (?)`;
+			const productCats = await dbquery(query, [result.map((i) => i.id)]);
+
 			result.forEach((p) => {
 				if (p.image === null) {
 					p.image = `/images/products/default.png`
 				}
+				var x = productCats.filter((i) => i.productId === p.id);
+				p.categories = x
+					.map((i) => {
+						return { categoryId: i.categoryId, category: i.category };
+					})
+					.sort((a, b) => a.categoryId - b.categoryId);
 			});
 
 			if (result.length === 0) {
@@ -80,13 +106,13 @@ module.exports = {
 		try {
 			let order = req.query.sort ? sortProduct.filter(i => i.id === parseInt(req.query.sort))[0].name : 'id desc'
 			let cat = parseInt(req.params.categoryId)
-			let query = `select p.id, b.brand, p.name, p.price, p.stock, pi.id as imageId, pi.image from products p
-                        join product_cats pc on pc.productId = p.id
-						join brands b on b.id = p.brandId
-						left join product_images pi on pi.productId = p.id
-						${cat !== 0 ? `where pc.categoryId = ${db.escape(cat)}` : ''}
-						group by p.id order by p.${order}
-                        ${req.query.limit ? `limit ? offset ?` : ''}`;
+			let query = `select * from product_complete_fix
+						${cat !== 0
+							? `where categoryId = ${db.escape(cat)}` 
+							: `where mainParentId is null`
+						}
+						order by ${order}
+						${req.query.limit ? `limit ? offset ?` : '' }`
 			const result = await dbquery(query, [
 				parseInt(req.query.limit),
 				parseInt(req.query.offset)

@@ -4,9 +4,8 @@ const dbquery = util.promisify(db.query).bind(db);
 
 const querygetbuild = `SELECT ub.*, pc.brand, pc.name, pc.weight, pc.wattage, pc.stock,
                 pc.price, pc.image, pc.categoryId, pc.category FROM user_builds ub
-                join product_complete pc on pc.id = ub.productId
-                where userId = ?
-                group by ub.productId
+                join product_complete_fix pc on pc.id = ub.productId
+                where userId = ? and mainParentId is null
                 order by ub.id desc`
 const querygetcategories = `select * from product_cats where productId in (?) order by productId, categoryId`
 
