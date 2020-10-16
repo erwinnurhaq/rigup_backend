@@ -6,9 +6,9 @@ module.exports = {
         auth: {
             type: 'oauth2',
             user: 'simkalastoforka@gmail.com',
-            clientId: '662913831038-vshutd3ss8613i08at2kdqhefamojknd.apps.googleusercontent.com',
-            clientSecret: 'xcyzwZj9DYk1MaI2TNZCNpYg',
-            refreshToken: '1//04w2vVbkoiG0gCgYIARAAGAQSNwF-L9IraFGOMBCkamOZxTcpX6k8njtqpsHZ3HZKd_jX1flvBp89FCEMEhoDRjjybJc-6TNIC_I',
+            clientId: '',
+            clientSecret: '',
+            refreshToken: '',
         }
     }),
     verifyEmail: (destination, token) => {
